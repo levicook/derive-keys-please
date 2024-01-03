@@ -1,0 +1,5 @@
+#/bin/bash
+cargo run -q --manifest-path ./the-rust-way/Cargo.toml  > rust.out
+NODE_NO_WARNINGS=1 ./the-node-way/node_modules/.bin/ts-node ./the-node-way/index.ts > node.out
+
+diff -y rust.out node.out && echo rust and node output was identical
