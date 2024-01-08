@@ -1,11 +1,39 @@
 use std::env;
 
+mod utils;
+
 use solana_sdk::{
-    derivation_path::DerivationPath, signature::keypair_from_seed_and_derivation_path,
+    derivation_path::DerivationPath,
+    signature::{keypair_from_seed, keypair_from_seed_and_derivation_path},
     signer::Signer,
 };
 
 fn main() {
+    let cmd = clap::Command::new("the-rust-way")
+        .subcommand_required(true)
+        .subcommand(clap::Command::new("derive-keys-please"))
+        .subcommand(
+            clap::Command::new("list-assets-please").arg(
+                clap::Arg::new("ownerAddress")
+                    .value_parser(clap::builder::NonEmptyStringValueParser::new()),
+            ),
+        );
+
+    let matches = cmd.get_matches();
+    let _matches = match matches.subcommand() {
+        Some(("derive-keys-please", _matches)) => derive_keys_please(),
+        Some(("list-assets-please", matches)) => {
+            let owner_address: &String = matches
+                .get_one("ownerAddress")
+                .expect("ownerAddress is required");
+
+            list_assets_please(&owner_address)
+        }
+        _ => unreachable!("clap should ensure we don't get here"),
+    };
+}
+
+fn derive_keys_please() {
     const DEFAULT_SEED_PHRASE: &str =
         "method bronze music hero response market impact sound bone magic unfair salad";
     const DEFAULT_PASS_PHRASE: &str = "";
@@ -20,8 +48,9 @@ fn main() {
         None => DEFAULT_PASS_PHRASE.to_string(),
     };
 
-    let mnemonic = parse_mnemonic(&seed_phrase).unwrap();
+    let mnemonic = utils::parse_mnemonic(&seed_phrase).unwrap();
     let seed = bip39::Seed::new(&mnemonic, &pass_phrase);
+    let root = keypair_from_seed(seed.as_bytes()).unwrap();
 
     let mut paths: Vec<String> = vec![];
     paths.push("m/44'/501'".to_string());
@@ -42,26 +71,13 @@ fn main() {
         (path, keypair.unwrap().pubkey())
     });
 
-    println!("{:20} {}", "derivation path", "pubkey");
+    println!("{:20} {}", "path", "pubkey");
+    println!("{:20} {}", "", root.pubkey());
     for (path, pubkey) in pairs {
         println!("{:20} {}", path, pubkey);
     }
 }
 
-fn parse_mnemonic(phrase: &str) -> Result<bip39::Mnemonic, String> {
-    for language in [
-        bip39::Language::English,
-        bip39::Language::ChineseSimplified,
-        bip39::Language::ChineseTraditional,
-        bip39::Language::Japanese,
-        bip39::Language::Spanish,
-        bip39::Language::Korean,
-        bip39::Language::French,
-        bip39::Language::Italian,
-    ] {
-        if let Ok(mnemonic) = bip39::Mnemonic::from_phrase(phrase, language) {
-            return Ok(mnemonic);
-        }
-    }
-    Err("Invalid mnemonic".to_string())
+fn list_assets_please(owner_address: &str) {
+    println!("owner_address {}", owner_address);
 }

@@ -1,5 +1,11 @@
 #/bin/bash
-cargo run -q --manifest-path ./the-rust-way/Cargo.toml  > rust.out
-NODE_NO_WARNINGS=1 ./the-node-way/node_modules/.bin/ts-node ./the-node-way/index.ts > node.out
 
-diff -y rust.out node.out && echo rust and node output was identical
+## derive-keys
+cargo run -q --manifest-path ./the-rust-way/Cargo.toml -- derive-keys-please > derive-keys-rust.out
+NODE_NO_WARNINGS=1 ./the-node-way/node_modules/.bin/ts-node ./the-node-way/index.ts -- derive-keys-please > derive-keys-node.out
+diff -y derive-keys-rust.out derive-keys-node.out && echo rust and node output was identical
+
+## list-assets
+cargo run -q --manifest-path ./the-rust-way/Cargo.toml -- list-assets-please JUskoxS2PTiaBpxfGaAPgf3cUNhdeYFGMKdL6mZKKfR > list-assets-rust.out
+NODE_NO_WARNINGS=1 ./the-node-way/node_modules/.bin/ts-node ./the-node-way/index.ts -- list-assets-please JUskoxS2PTiaBpxfGaAPgf3cUNhdeYFGMKdL6mZKKfR > list-assets-node.out
+diff -y list-assets-rust.out list-assets-node.out && echo rust and node output was identical
